@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Document Classifier - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .demo-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .demo-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .demo-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .demo-samples {
+            background: #fff;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .demo-samples h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .sample-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .sample-btn {
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .sample-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+        }
+
+        .classifier-widget {
+            background-color: #f8f9fa;
+            color: #212529;
+            line-height: 1.5;
+            padding: 20px;
+            width: 100%;
+            min-height: 400px;
+        }
+
+        .legal-classifier .header {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .legal-classifier .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a73e8;
+            margin: 0 0 8px 0;
+        }
+
+        .legal-classifier .header p {
+            color: #6c757d;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .legal-classifier .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .legal-classifier .panel {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .legal-classifier .panel-header {
+            background: #f8f9fa;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 600;
+            font-size: 16px;
+            color: #495057;
+            margin: 0;
+        }
+
+        .legal-classifier .panel-content {
+            padding: 20px;
+        }
+
+        .legal-classifier .full-width-panel {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-top: 24px;
+        }
+
+        .legal-classifier .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            margin-bottom: 16px;
+        }
+
+        .legal-classifier .upload-area:hover {
+            border-color: #1a73e8;
+            background: #f0f7ff;
+        }
+
+        .legal-classifier .upload-icon {
+            font-size: 48px;
+            color: #6c757d;
+            margin-bottom: 16px;
+        }
+
+        .legal-classifier .upload-text {
+            font-size: 16px;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .legal-classifier .upload-subtext {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .legal-classifier .text-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .legal-classifier .text-input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+
+        .legal-classifier .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .legal-classifier .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .legal-classifier .btn-primary {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .legal-classifier .btn-primary:hover {
+            background: #1557b0;
+        }
+
+        .legal-classifier .btn-secondary {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ced4da;
+        }
+
+        .legal-classifier .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .legal-classifier .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .legal-classifier .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1a73e8;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .legal-classifier .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .legal-classifier .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .legal-classifier .divider {
+            margin: 16px 0;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .legal-classifier .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sample-buttons {
+                justify-content: center;
+            }
+            
+            .demo-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-header">
+        <h1>🏛️ Legal Document Classifier</h1>
+        <p>AI-Powered Legal Document Analysis & Classification</p>
+    </div>
+
+    <div class="demo-container">
+        <!-- Sample Documents Section -->
+        <div class="demo-samples">
+            <h3>🎯 Try These Sample Documents:</h3>
+            <div class="sample-buttons">
+                <button class="sample-btn" onclick="loadSample('contract')">📄 Service Agreement</button>
+                <button class="sample-btn" onclick="loadSample('motion')">⚖️ Legal Motion</button>
+                <button class="sample-btn" onclick="loadSample('nda')">🔒 NDA Agreement</button>
+                <button class="sample-btn" onclick="loadSample('lease')">🏠 Lease Agreement</button>
+                <button class="sample-btn" onclick="loadSample('employment')">👥 Employment Contract</button>
+            </div>
+        </div>
+
+        <!-- Legal Classifier Widget -->
+        <div class="classifier-widget">
+            <div class="legal-classifier" id="classifier">
+                <div class="header">
+                    <h1>Legal Document Classifier</h1>
+                    <p>Upload or paste legal documents to automatically classify and analyze their content.</p>
+                </div>
+                
+                <div class="main-content">
+                    <div class="panel input-panel">
+                        <div class="panel-header">📄 Document Input</div>
+                        <div class="panel-content">
+                            <div class="upload-area" id="uploadArea">
+                                <div class="upload-icon">📁</div>
+                                <div class="upload-text">Drop text files here or click to upload</div>
+                                <div class="upload-subtext">Supports TXT files</div>
+                            </div>
+                            <input type="file" id="fileInput" style="display: none;" accept=".txt">
+                            
+                            <div class="divider">— or paste text directly —</div>
+                            
+                            <textarea id="textInput" class="text-input" placeholder="Paste your legal document text here..."></textarea>
+                            
+                            <div class="button-group">
+                                <button id="classifyBtn" class="btn btn-primary">🔍 Classify Document</button>
+                                <button id="clearBtn" class="btn btn-secondary">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel output-panel">
+                        <div class="panel-header">📊 Classification Results</div>
+                        <div class="panel-content">
+                            <div id="loadingState" class="loading" style="display: none;">
+                                <div class="spinner"></div>
+                                <div>Analyzing document...</div>
+                            </div>
+                            
+                            <div id="emptyState" class="empty-state">
+                                <div class="empty-icon">📋</div>
+                                <div>Upload or paste a document to see classification results</div>
+                            </div>
+                            
+                            <div id="resultsContainer" style="display: none;">
+                                <!-- Results populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Full Width Detailed Analysis Panel -->
+                <div id="detailedAnalysisPanel" class="full-width-panel" style="display: none;">
+                    <div class="panel-header">📄 Detailed Analysis & Document Profile</div>
+                    <div class="panel-content" style="padding: 0;">
+                        <div id="detailedAnalysisContent">
+                            <!-- Detailed analysis content will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample documents data
+        const sampleDocuments = {
+            contract: {
+                filename: 'service-agreement.txt',
+                content: `SERVICE AGREEMENT
+
+This Service Agreement ("Agreement") is entered into on January 15, 2024, by and between TechCorp Solutions, a Delaware corporation ("Company"), and ABC Industries ("Client").
+
+1. SERVICES
+Company agrees to provide the following services to Client:
+- Software development and maintenance services
+- Technical support and consulting services  
+- System integration and deployment services
+
+2. TERM AND TERMINATION
+This Agreement shall commence on February 1, 2024, and continue for a period of twelve (12) months, unless terminated earlier in accordance with the provisions herein.
+
+3. COMPENSATION
+Client agrees to pay Company a total fee of $50,000, payable in monthly installments of $4,167.
+
+4. CONFIDENTIALITY
+Both parties acknowledge that they may have access to certain confidential information of the other party. Each party agrees to maintain the confidentiality of such information and not to disclose it to any third party without prior written consent.
+
+5. INTELLECTUAL PROPERTY
+All intellectual property rights in any work product created by Company under this Agreement shall remain the property of Company, subject to a license granted to Client for the specific purposes outlined herein.
+
+6. LIABILITY AND INDEMNIFICATION
+Company's liability under this Agreement shall be limited to the amount of fees paid by Client. Each party shall indemnify the other against any claims arising from their own negligent acts or omissions.
+
+7. GOVERNING LAW
+This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
+
+TechCorp Solutions                    ABC Industries
+_____________________               _____________________
+[Signature]                         [Signature]`
+            },
+            motion: {
+                filename: 'legal-motion.txt',
+                content: `MOTION FOR SUMMARY JUDGMENT
+
+TO THE HONORABLE COURT:
+
+Plaintiff respectfully moves this Court for summary judgment in his favor on all claims pursuant to Federal Rule of Civil Procedure 56.
+
+I. STATEMENT OF THE CASE
+
+This action arises from a contract dispute between Plaintiff and Defendant regarding the performance of software development services under a written agreement dated March 1, 2023.
+
+II. STATEMENT OF FACTS
+
+1. On March 1, 2023, Plaintiff and Defendant entered into a Software Development Agreement ("Agreement").
+
+2. Under the Agreement, Plaintiff was to provide custom software development services for Defendant's e-commerce platform.
+
+3. Plaintiff performed all services required under the Agreement and delivered the completed software on schedule.
+
+4. Despite repeated demands, Defendant has failed to pay the outstanding balance of $75,000 owed under the Agreement.
+
+III. ARGUMENT
+
+A. Standard for Summary Judgment
+
+Summary judgment is appropriate where there are no genuine disputes of material fact and the moving party is entitled to judgment as a matter of law. Fed. R. Civ. P. 56(a).
+
+B. Plaintiff is Entitled to Summary Judgment on the Breach of Contract Claim
+
+The undisputed facts establish that: (1) a valid contract existed between the parties; (2) Plaintiff performed his obligations under the contract; (3) Defendant breached the contract by failing to pay; and (4) Plaintiff suffered damages as a result.
+
+IV. CONCLUSION
+
+For the foregoing reasons, Plaintiff respectfully requests that this Court grant his Motion for Summary Judgment and enter judgment in favor of Plaintiff in the amount of $75,000, plus interest, costs, and such other relief as the Court deems just and proper.
+
+Respectfully submitted,
+
+[Attorney Name]
+Attorney for Plaintiff
+State Bar No. 12345`
+            },
+            nda: {
+                filename: 'nda-agreement.txt',
+                content: `NON-DISCLOSURE AGREEMENT
+
+This Non-Disclosure Agreement ("Agreement") is entered into on [Date], by and between [Company Name], a [State] corporation ("Disclosing Party"), and [Recipient Name] ("Receiving Party").
+
+RECITALS
+
+WHEREAS, Disclosing Party possesses certain confidential and proprietary information relating to its business operations, technology, and strategic plans; and
+
+WHEREAS, Receiving Party desires to receive such confidential information for the purpose of evaluating potential business opportunities;
+
+NOW, THEREFORE, in consideration of the mutual covenants contained herein, the parties agree as follows:
+
+1. CONFIDENTIAL INFORMATION
+"Confidential Information" means any and all non-public information disclosed by Disclosing Party to Receiving Party, including but not limited to:
+- Technical data, trade secrets, and know-how
+- Business plans, financial information, and customer lists
+- Marketing strategies and product development plans
+- Any other information marked as "Confidential" or that would reasonably be considered confidential
+
+2. OBLIGATIONS OF RECEIVING PARTY
+Receiving Party agrees to:
+a) Hold all Confidential Information in strict confidence
+b) Not disclose Confidential Information to any third party without prior written consent
+c) Use Confidential Information solely for the purpose of evaluating business opportunities
+d) Take reasonable precautions to prevent unauthorized disclosure
+
+3. TERM
+This Agreement shall remain in effect for a period of five (5) years from the date of execution, unless terminated earlier by mutual written consent.
+
+4. RETURN OF MATERIALS
+Upon termination of this Agreement, Receiving Party shall promptly return or destroy all materials containing Confidential Information.
+
+5. REMEDIES
+Receiving Party acknowledges that any breach of this Agreement may cause irreparable harm to Disclosing Party, and that monetary damages may be inadequate. Therefore, Disclosing Party shall be entitled to seek equitable relief, including injunction and specific performance.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement.
+
+DISCLOSING PARTY                    RECEIVING PARTY
+_____________________               _____________________
+[Signature]                         [Signature]
+[Print Name]                        [Print Name]
+[Title]                            [Title]
+[Date]                             [Date]`
+            },
+            lease: {
+                filename: 'lease-agreement.txt',
+                content: `RESIDENTIAL LEASE AGREEMENT
+
+This Lease Agreement ("Lease") is entered into on [Date], between [Landlord Name] ("Landlord") and [Tenant Name] ("Tenant") for the rental of the property located at [Property Address] ("Premises").
+
+1. TERM
+The lease term shall commence on [Start Date] and end on [End Date], for a total period of twelve (12) months.
+
+2. RENT
+Tenant agrees to pay monthly rent of $2,500, due on the first day of each month. A late fee of $50 will be charged for payments received after the 5th day of the month.
+
+3. SECURITY DEPOSIT
+Tenant has deposited $2,500 as security for performance of this Lease. The deposit will be returned within 30 days after termination, less any deductions for damages or unpaid rent.
+
+4. USE OF PREMISES
+The Premises shall be used solely as a private residence. No commercial activities are permitted without Landlord's written consent.
+
+5. MAINTENANCE AND REPAIRS
+Tenant shall maintain the Premises in good condition and promptly notify Landlord of any needed repairs. Landlord shall be responsible for major structural repairs and maintenance of common areas.
+
+6. PETS
+No pets are allowed on the Premises without Landlord's prior written consent.
+
+7. INSURANCE
+Tenant is encouraged to obtain renter's insurance to protect personal property. Landlord's insurance does not cover Tenant's personal belongings.
+
+8. TERMINATION
+Either party may terminate this Lease with 30 days' written notice. Early termination by Tenant may result in forfeiture of security deposit.
+
+9. GOVERNING LAW
+This Lease shall be governed by the laws of [State].
+
+LANDLORD                           TENANT
+_____________________              _____________________
+[Signature]                        [Signature]
+[Print Name]                       [Print Name]
+[Date]                            [Date]`
+            },
+            employment: {
+                filename: 'employment-contract.txt',
+                content: `EMPLOYMENT AGREEMENT
+
+This Employment Agreement ("Agreement") is entered into on [Date], between [Company Name], a [State] corporation ("Company"), and [Employee Name] ("Employee").
+
+1. POSITION AND DUTIES
+Employee is hereby employed as Senior Software Engineer. Employee shall perform such duties as may be assigned by Company's management and shall devote full-time efforts to Company's business.
+
+2. COMPENSATION
+Company shall pay Employee an annual salary of $120,000, payable in bi-weekly installments. Employee shall also be eligible for performance-based bonuses at Company's discretion.
+
+3. BENEFITS
+Employee shall be entitled to participate in Company's benefit plans, including:
+- Health insurance coverage
+- Dental and vision insurance
+- 401(k) retirement plan with company matching
+- Paid time off (15 days annually)
+- Professional development opportunities
+
+4. CONFIDENTIALITY
+Employee acknowledges that they will have access to confidential and proprietary information. Employee agrees to maintain strict confidentiality and not to disclose such information to any third party.
+
+5. INTELLECTUAL PROPERTY
+All work product, inventions, and intellectual property created by Employee during the course of employment shall be the exclusive property of Company.
+
+6. NON-COMPETE
+For a period of one (1) year following termination of employment, Employee agrees not to engage in any business that directly competes with Company within a 50-mile radius of Company's headquarters.
+
+7. TERMINATION
+This Agreement may be terminated by either party with two (2) weeks' written notice. Company may terminate immediately for cause, including but not limited to misconduct, breach of confidentiality, or failure to perform duties.
+
+8. GOVERNING LAW
+This Agreement shall be governed by the laws of [State].
+
+By signing below, both parties acknowledge they have read and agree to the terms of this Agreement.
+
+COMPANY                            EMPLOYEE
+_____________________              _____________________
+[Signature]                        [Signature]
+[Print Name]                       [Print Name]
+[Title]                           [Date]
+[Date]`
+            }
+        };
+
+        // Demo results for each sample
+        const demoResults = {
+            'service-agreement.txt': {
+                classification: 'Service Agreement',
+                confidence: 0.95,
+                confidenceScore: '95%',
+                reasoning: 'This document was classified as a Service Agreement due to its explicit identification of services to be provided between TechCorp Solutions and ABC Industries, compensation terms, and formal business contract structure. The document contains standard contract elements including term definitions, scope of work, payment schedules, and governing law provisions.',
+                legalAnalysis: `1. Document Type and Purpose:
+This is a Service Agreement between TechCorp Solutions (a Delaware corporation) and ABC Industries. The purpose is to establish a formal business relationship for the provision of software development, technical support, and system integration services.
+
+2. Key Phrases Indicative of Legal Nature:
+- "Service Agreement ('Agreement') is entered into"
+- "Corporation ('Company'), and [Client Name] ('Client')"
+- "Company agrees to provide the following services"
+- "governed by and construed in accordance with the laws"
+- "IN WITNESS WHEREOF, the parties have executed this Agreement"
+
+3. Legal Structure and Format:
+The document follows standard commercial contract format with numbered sections covering: Services (scope of work), Term and Termination (duration and exit clauses), Compensation (payment terms), Confidentiality (information protection), Intellectual Property (ownership rights), Liability and Indemnification (risk allocation), and Governing Law (jurisdiction).
+
+4. Jurisdictional Elements:
+- Governed by Delaware state law
+- TechCorp Solutions incorporated in Delaware
+- Formal contract execution with signatures required
+
+5. Legal Significance:
+This represents a binding commercial services contract with clearly defined obligations, compensation structure ($50,000 total, $4,167 monthly), and standard business protection clauses including confidentiality and IP ownership provisions.`,
+                wordCount: 432,
+                processingTime: '2.4s',
+                complexityScore: 7.5,
+                targetAudience: 'Business executives, legal professionals, and contract administrators',
+                readability: 'Professional business writing (Grade 14)',
+                remainingCredits: 47
+            },
+            'legal-motion.txt': {
+                classification: 'Legal Motion',
+                confidence: 0.92,
+                confidenceScore: '92%',
+                reasoning: 'This document was classified as a Legal Motion due to its formal court filing structure, explicit request for summary judgment under Federal Rule of Civil Procedure 56, and standard legal motion formatting with statement of facts, legal argument, and conclusion requesting specific relief.',
+                legalAnalysis: `1. Document Type and Purpose:
+This is a Motion for Summary Judgment filed in federal court seeking judgment in favor of the plaintiff on breach of contract claims. It's a formal legal pleading requesting the court to rule without trial based on undisputed facts.
+
+2. Key Phrases Indicative of Legal Nature:
+- "MOTION FOR SUMMARY JUDGMENT"
+- "TO THE HONORABLE COURT"
+- "pursuant to Federal Rule of Civil Procedure 56"
+- "respectfully moves this Court"
+- "Respectfully submitted"
+
+3. Legal Structure and Format:
+Standard federal court motion format including: formal caption addressing the court, statement of the case (procedural background), statement of facts (relevant undisputed facts), legal argument (application of law to facts), and conclusion (specific relief requested).
+
+4. Jurisdictional Elements:
+- Federal court jurisdiction
+- References Federal Rules of Civil Procedure
+- Contract dispute involving $75,000
+- Formal attorney representation with state bar number
+
+5. Legal Significance:
+This represents active federal litigation seeking to avoid trial through summary judgment. The motion demonstrates proper legal procedure, cite relevant law (Fed. R. Civ. P. 56), and presents legal arguments for why judgment should be granted as a matter of law.`,
+                wordCount: 387,
+                processingTime: '2.1s',
+                complexityScore: 8.5,
+                targetAudience: 'Attorneys, judges, law students, and legal professionals',
+                readability: 'Legal professional writing (Grade 16+)',
+                remainingCredits: 46
+            },
+            'nda-agreement.txt': {
+                classification: 'Non-Disclosure Agreement',
+                confidence: 0.94,
+                confidenceScore: '94%',
+                reasoning: 'This document was classified as a Non-Disclosure Agreement based on its explicit title, focus on confidentiality obligations, definition of confidential information, and standard NDA structure including recitals, confidentiality obligations, and equitable relief provisions.',
+                legalAnalysis: `1. Document Type and Purpose:
+This is a Non-Disclosure Agreement (NDA) designed to protect confidential and proprietary information during business evaluation discussions. It establishes legal framework for information sharing while maintaining confidentiality.
+
+2. Key Phrases Indicative of Legal Nature:
+- "NON-DISCLOSURE AGREEMENT"
+- "confidential and proprietary information"
+- "WHEREAS" clauses (recitals)
+- "Confidential Information means"
+- "equitable relief, including injunction"
+
+3. Legal Structure and Format:
+Standard NDA format with formal recitals explaining the purpose, detailed definition of confidential information, specific obligations of the receiving party, term duration, return of materials clause, and remedies section emphasizing equitable relief.
+
+4. Jurisdictional Elements:
+- Five-year term duration
+- Equitable relief provisions
+- Return/destruction of materials requirement
+- Standard corporate entity structure
+
+5. Legal Significance:
+This represents a comprehensive confidentiality agreement with broad definition of protected information including technical data, business plans, and customer information. The inclusion of equitable relief provisions demonstrates understanding that monetary damages may be inadequate for confidentiality breaches.`,
+                wordCount: 356,
+                processingTime: '1.9s',
+                complexityScore: 6.5,
+                targetAudience: 'Business professionals, entrepreneurs, and legal counsel',
+                readability: 'Professional business writing (Grade 13)',
+                remainingCredits: 45
+            },
+            'lease-agreement.txt': {
+                classification: 'Residential Lease Agreement',
+                confidence: 0.91,
+                confidenceScore: '91%',
+                reasoning: 'This document was classified as a Residential Lease Agreement due to its explicit title, landlord-tenant relationship structure, rental property terms, and standard residential lease provisions including rent, security deposit, and use restrictions.',
+                legalAnalysis: `1. Document Type and Purpose:
+This is a Residential Lease Agreement establishing a landlord-tenant relationship for rental of residential property. The document governs the rental of premises for a 12-month term with specific rental obligations and property use restrictions.
+
+2. Key Phrases Indicative of Legal Nature:
+- "RESIDENTIAL LEASE AGREEMENT"
+- "Landlord" and "Tenant" (party designations)
+- "monthly rent," "security deposit"
+- "Use of Premises," "solely as a private residence"
+- "governed by the laws of [State]"
+
+3. Legal Structure and Format:
+Standard residential lease format covering essential elements: term duration, rental amount and payment schedule, security deposit provisions, permitted use restrictions, maintenance responsibilities, pet policies, insurance recommendations, and termination procedures.
+
+4. Jurisdictional Elements:
+- State law governance
+- 30-day notice requirements
+- Security deposit return within 30 days
+- Late fee provisions ($50 after 5th day)
+
+5. Legal Significance:
+This represents a comprehensive residential tenancy agreement with $2,500 monthly rent and matching security deposit. The agreement includes standard landlord-tenant protections, maintenance allocation between parties, and clear termination procedures with notice requirements.`,
+                wordCount: 298,
+                processingTime: '1.7s',
+                complexityScore: 5.5,
+                targetAudience: 'Property owners, tenants, and property management professionals',
+                readability: 'Standard business writing (Grade 12)',
+                remainingCredits: 44
+            },
+            'employment-contract.txt': {
+                classification: 'Employment Agreement',
+                confidence: 0.93,
+                confidenceScore: '93%',
+                reasoning: 'This document was classified as an Employment Agreement based on its explicit title, employer-employee relationship structure, job position definition, compensation terms, benefits package, and standard employment contract provisions including confidentiality and non-compete clauses.',
+                legalAnalysis: `1. Document Type and Purpose:
+This is an Employment Agreement establishing the working relationship between a company and a Senior Software Engineer. The document defines employment terms, compensation, benefits, and post-employment obligations.
+
+2. Key Phrases Indicative of Legal Nature:
+- "EMPLOYMENT AGREEMENT"
+- "Employee is hereby employed as"
+- "annual salary," "performance-based bonuses"
+- "confidential and proprietary information"
+- "Non-compete," "intellectual property"
+
+3. Legal Structure and Format:
+Standard employment contract format including: position description and duties, compensation structure ($120,000 annually), comprehensive benefits package, confidentiality obligations, intellectual property assignment, non-compete restrictions, and termination procedures.
+
+4. Jurisdictional Elements:
+- State law governance
+- One-year non-compete period
+- 50-mile radius restriction
+- Two-week notice requirement
+
+5. Legal Significance:
+This represents a comprehensive employment agreement for a senior-level technology position with competitive compensation, full benefits package, and standard employer protections including IP assignment and geographic non-compete restrictions. The agreement balances employee benefits with employer protection of confidential information and competitive interests.`,
+                wordCount: 341,
+                processingTime: '2.0s',
+                complexityScore: 7.0,
+                targetAudience: 'HR professionals, employees, managers, and employment attorneys',
+                readability: 'Professional business writing (Grade 13)',
+                remainingCredits: 43
+            }
+        };
+
+        // Get complexity level description
+        function getComplexityLevel(score) {
+            if (!score) return '';
+            const num = parseFloat(score);
+            if (num <= 3) return 'Basic';
+            if (num <= 6) return 'Intermediate';
+            if (num <= 8) return 'Advanced';
+            return 'Expert';
+        }
+
+        // Load sample document
+        function loadSample(type) {
+            const sample = sampleDocuments[type];
+            if (sample) {
+                const textInput = document.getElementById('textInput');
+                const uploadArea = document.getElementById('uploadArea');
+                
+                // Set the text
+                textInput.value = sample.content;
+                
+                // Update upload area to show loaded file
+                uploadArea.innerHTML = `
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">${sample.filename} (Demo)</div>
+                    <div class="upload-subtext">Sample document loaded - ready to classify</div>
+                `;
+                
+                // Auto-scroll to the classifier
+                document.getElementById('classifier').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Setup event handlers
+        function setupEventHandlers() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const textInput = document.getElementById('textInput');
+            const classifyBtn = document.getElementById('classifyBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            
+            if (uploadArea && fileInput) {
+                uploadArea.onclick = () => fileInput.click();
+            }
+            
+            if (classifyBtn) {
+                classifyBtn.onclick = () => classifyDocument();
+            }
+            
+            if (clearBtn) {
+                clearBtn.onclick = () => clearInput();
+            }
+            
+            if (fileInput) {
+                fileInput.onchange = (e) => handleFileSelect(e);
+            }
+        }
+
+        function classifyDocument() {
+            const textInput = document.getElementById('textInput');
+            const fileInput = document.getElementById('fileInput');
+            const loadingState = document.getElementById('loadingState');
+            const emptyState = document.getElementById('emptyState');
+            
+            const hasText = textInput && textInput.value.trim();
+            const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+            
+            if (!hasText && !hasFile) {
+                alert('Please enter text or upload a file');
+                return;
+            }
+            
+            // Show loading
+            if (emptyState) emptyState.style.display = 'none';
+            if (loadingState) loadingState.style.display = 'block';
+            
+            // Simulate processing delay
+            setTimeout(() => {
+                let filename = '';
+                
+                // Determine which sample this is based on content
+                if (hasText) {
+                    const content = textInput.value;
+                    for (const [key, sample] of Object.entries(sampleDocuments)) {
+                        if (content.includes(sample.content.substring(0, 50))) {
+                            filename = sample.filename;
+                            break;
+                        }
+                    }
+                }
+                
+                if (hasFile) {
+                    filename = fileInput.files[0].name;
+                }
+                
+                // Get demo results or create generic results
+                const results = demoResults[filename] || {
+                    classification: 'Legal Document',
+                    confidence: 0.85,
+                    confidenceScore: '85%',
+                    reasoning: 'This document appears to be a legal document based on its formal structure and legal terminology.',
+                    legalAnalysis: 'Generic legal document analysis would appear here for uploaded content.',
+                    wordCount: textInput.value.split(/\s+/).length,
+                    processingTime: '2.2s',
+                    complexityScore: 6.0,
+                    targetAudience: 'Legal professionals',
+                    readability: 'Professional writing (Grade 14)',
+                    remainingCredits: 42
+                };
+                
+                displayResults(results);
+            }, 2500);
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            const uploadArea = document.getElementById('uploadArea');
+            
+            if (file) {
+                if (uploadArea) {
+                    uploadArea.innerHTML = `
+                        <div class="upload-icon">✅</div>
+                        <div class="upload-text">${file.name}</div>
+                        <div class="upload-subtext">File ready for classification (${(file.size / 1024).toFixed(1)} KB)</div>
+                    `;
+                }
+                
+                // If it's a text file, read and display the content
+                if (file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const textInput = document.getElementById('textInput');
+                        textInput.value = e.target.result;
+                    };
+                    reader.readAsText(file);
+                }
+            }
+        }
+
+        function clearInput() {
+            const textInput = document.getElementById('textInput');
+            const fileInput = document.getElementById('fileInput');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const emptyState = document.getElementById('emptyState');
+            const uploadArea = document.getElementById('uploadArea');
+            const detailedPanel = document.getElementById('detailedAnalysisPanel');
+            
+            if (textInput) textInput.value = '';
+            if (fileInput) fileInput.value = '';
+            if (resultsContainer) resultsContainer.style.display = 'none';
+            if (emptyState) emptyState.style.display = 'block';
+            if (detailedPanel) detailedPanel.style.display = 'none';
+            
+            // Reset upload area
+            if (uploadArea) {
+                uploadArea.innerHTML = `
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Drop text files here or click to upload</div>
+                    <div class="upload-subtext">Supports TXT files</div>
+                `;
+            }
+        }
+
+        function displayResults(results) {
+            const loadingState = document.getElementById('loadingState');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const emptyState = document.getElementById('emptyState');
+            const detailedPanel = document.getElementById('detailedAnalysisPanel');
+            const detailedContent = document.getElementById('detailedAnalysisContent');
+            
+            if (loadingState) loadingState.style.display = 'none';
+            if (emptyState) emptyState.style.display = 'none';
+            
+            // Get confidence percentage
+            const confidencePercent = results.confidenceScore ? 
+                parseFloat(results.confidenceScore.replace('%', '')) : 
+                Math.round((results.confidence || 0.5) * 100);
+            
+            // Create rainbow gradient based on confidence level
+            const getConfidenceColor = (percent) => {
+                if (percent >= 80) return '#10b981'; // Green for high confidence
+                if (percent >= 60) return '#f59e0b'; // Orange for medium confidence  
+                if (percent >= 40) return '#ef4444'; // Red for low confidence
+                return '#dc2626'; // Dark red for very low confidence
+            };
+
+            // Convert processing time
+            const convertProcessingTime = (timeValue) => {
+                if (!timeValue) return '';
+                const timeStr = String(timeValue);
+                const numericValue = parseFloat(timeStr.replace(/[^0-9.]/g, ''));
+                if (isNaN(numericValue)) return timeStr;
+                
+                if (numericValue > 1000) {
+                    const seconds = (numericValue / 1000).toFixed(2);
+                    return `${seconds}s`;
+                }
+                
+                if (timeStr.includes('s') || timeStr.includes('sec')) {
+                    return timeStr;
+                }
+                
+                if (numericValue > 0 && numericValue <= 1000) {
+                    const seconds = (numericValue / 1000).toFixed(3);
+                    return `${seconds}s`;
+                }
+                
+                return timeStr;
+            };
+            
+            const processedTime = convertProcessingTime(results.processingTime);
+            
+            // Populate RIGHT PANEL with summary
+            const summaryHTML = `
+                <!-- Classification Header Card with Rainbow Confidence Bar -->
+                <div style="background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 16px; text-align: center;">
+                    <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Document Classification</div>
+                    <div style="font-size: 24px; font-weight: 700; margin-bottom: 12px;">${results.classification || 'Unknown'}</div>
+                    
+                    <!-- Confidence Section -->
+                    <div style="margin-bottom: 8px;">
+                        <div style="font-size: 12px; opacity: 0.9; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Confidence Level</div>
+                        
+                        <!-- Rainbow Progress Bar -->
+                        <div style="background: linear-gradient(to right, #dc2626 0%, #ef4444 25%, #f59e0b 50%, #eab308 75%, #10b981 100%); border-radius: 8px; height: 8px; overflow: hidden; margin-bottom: 8px; position: relative;">
+                            <!-- Confidence Indicator -->
+                            <div style="position: absolute; top: 0; left: ${confidencePercent}%; width: 3px; height: 100%; background: white; box-shadow: 0 0 4px rgba(0,0,0,0.3); transform: translateX(-50%);"></div>
+                            <!-- Fill Bar -->
+                            <div style="background: rgba(255,255,255,0.3); height: 100%; width: ${confidencePercent}%; border-radius: 8px;"></div>
+                        </div>
+                        
+                        <!-- Confidence Percentage -->
+                        <div style="font-size: 18px; font-weight: 700; color: ${getConfidenceColor(confidencePercent)}; background: rgba(255,255,255,0.9); padding: 4px 12px; border-radius: 20px; display: inline-block;">
+                            ${confidencePercent}%
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Profile Details -->
+                <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; overflow: hidden;">
+                    <div style="background: #f8f9fa; padding: 12px 16px; border-bottom: 1px solid #e9ecef;">
+                        <h4 style="margin: 0; color: #495057; font-size: 14px; font-weight: 600; display: flex; align-items: center;">
+                            <span style="margin-right: 8px;">📄</span>
+                            Document Profile
+                        </h4>
+                    </div>
+                    <div style="padding: 16px;">
+                        <div style="display: grid; gap: 16px; font-size: 13px;">
+                            
+                            ${results.wordCount ? `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f8f9fa;">
+                                    <span style="font-weight: 600; color: #6c757d;">Words:</span>
+                                    <span style="color: #1a73e8; font-weight: 600; font-size: 16px;">${results.wordCount.toLocaleString()}</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${results.processingTime ? `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f8f9fa;">
+                                    <span style="font-weight: 600; color: #6c757d;">Processing Time:</span>
+                                    <span style="color: #28a745; font-weight: 600; font-size: 16px;">${processedTime}</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${results.complexityScore ? `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f8f9fa;">
+                                    <span style="font-weight: 600; color: #6c757d;">Complexity:</span>
+                                    <span style="color: #fd7e14; font-weight: 600; font-size: 16px;">${results.complexityScore}/10 (${getComplexityLevel(results.complexityScore)})</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${results.targetAudience ? `
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid #f8f9fa;">
+                                    <span style="font-weight: 600; color: #6c757d; min-width: 100px;">Target Audience:</span>
+                                    <span style="color: #495057; text-align: right; flex: 1; margin-left: 12px; line-height: 1.4;">${results.targetAudience}</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${results.readability ? `
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid #f8f9fa;">
+                                    <span style="font-weight: 600; color: #6c757d; min-width: 100px;">Reading Level:</span>
+                                    <span style="color: #495057; text-align: right; flex: 1; margin-left: 12px; line-height: 1.4;">${results.readability}</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${results.remainingCredits ? `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;">
+                                    <span style="font-weight: 600; color: #6c757d;">API Credits:</span>
+                                    <span style="color: #6f42c1; font-weight: 600; font-size: 16px;">${results.remainingCredits} remaining</span>
+                                </div>
+                            ` : ''}
+                            
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            resultsContainer.innerHTML = summaryHTML;
+            resultsContainer.style.display = 'block';
+            
+            // Populate FULL-WIDTH DETAILED PANEL
+            const detailedHTML = `
+                <div style="padding: 12px 20px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa;">
+                    <span style="color: #9ca3af; font-size: 12px;">Scroll to view all sections</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button style="padding: 6px 12px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; color: #495057; cursor: pointer; font-size: 12px;">💾 Export</button>
+                        <button style="padding: 6px 12px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; color: #495057; cursor: pointer; font-size: 12px;">🔗 Share</button>
+                    </div>
+                </div>
+                
+                <!-- Horizontal Scrolling Container -->
+                <div style="display: flex; overflow-x: auto; gap: 1px; background: #e9ecef; scrollbar-width: thin;">
+                    
+                    <!-- Deep Legal Analysis Section -->
+                    ${results.legalAnalysis ? `
+                        <div style="min-width: 450px; max-width: 600px; background: white; flex-shrink: 0;">
+                            <div style="background: #e3f2fd; padding: 12px 16px; border-bottom: 1px solid #e9ecef;">
+                                <h4 style="margin: 0; color: #1565c0; font-size: 14px; font-weight: 600; display: flex; align-items: center;">
+                                    <span style="width: 8px; height: 8px; background: #1a73e8; border-radius: 50%; margin-right: 8px;"></span>
+                                    Deep Legal Analysis
+                                </h4>
+                            </div>
+                            <div style="padding: 16px; max-height: 350px; overflow-y: auto; font-size: 13px; line-height: 1.6; color: #495057;">
+                                <div style="white-space: pre-line;">
+                                    ${results.legalAnalysis}
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Classification Reasoning Section -->
+                    ${results.reasoning ? `
+                        <div style="min-width: 450px; max-width: 600px; background: white; flex-shrink: 0;">
+                            <div style="background: #f3e5f5; padding: 12px 16px; border-bottom: 1px solid #e9ecef;">
+                                <h4 style="margin: 0; color: #7b1fa2; font-size: 14px; font-weight: 600; display: flex; align-items: center;">
+                                    <span style="width: 8px; height: 8px; background: #9c27b0; border-radius: 50%; margin-right: 8px;"></span>
+                                    Classification Reasoning
+                                </h4>
+                            </div>
+                            <div style="padding: 16px; max-height: 350px; overflow-y: auto; font-size: 13px; line-height: 1.6; color: #495057;">
+                                ${results.reasoning}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                </div>
+            `;
+            
+            if (detailedContent) {
+                detailedContent.innerHTML = detailedHTML;
+            }
+            
+            // Show the detailed analysis panel
+            if (detailedPanel) {
+                detailedPanel.style.display = 'block';
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventHandlers();
+        });
+    </script>
+</body>
+</html>
